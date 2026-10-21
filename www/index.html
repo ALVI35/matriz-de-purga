@@ -100,6 +100,12 @@ table.mx{--c:40px;border-collapse:separate;border-spacing:0;table-layout:fixed;f
 .sheet{overscroll-behavior:contain;background:var(--surface);width:100%;max-width:520px;border-radius:16px 16px 0 0;padding:18px 16px calc(18px + env(safe-area-inset-bottom,0px));display:flex;flex-direction:column;gap:14px;max-height:92vh;overflow:auto;border:1px solid var(--line)}
 @media (min-width:640px){.scrim{align-items:center}.sheet{border-radius:16px}}
 .sheet h2{font-family:var(--f-display);font-size:19px;margin:0;font-weight:600}
+.sheet-h{position:sticky;top:-18px;z-index:3;margin:-18px -16px 0;padding:8px 8px 8px 16px;background:var(--surface);border-radius:16px 16px 0 0;touch-action:none;cursor:grab}
+.grab{width:42px;height:5px;border-radius:3px;background:var(--line);margin:0 auto 8px}
+.sheet-h .tt{display:flex;align-items:center;justify-content:space-between;gap:8px}
+.xbtn{border:0;background:var(--sunk);color:var(--muted);width:36px;height:36px;border-radius:50%;font-size:18px;line-height:1;cursor:pointer;flex:none}
+.sheet.dragging{transition:none!important;animation:none!important}
+.sheet.snap{transition:transform .22s ease}
 .pairline{display:flex;align-items:center;gap:10px;flex-wrap:wrap}
 .pairline .to{color:var(--muted);font-family:var(--f-mono)}
 .big{display:flex;align-items:center;gap:8px}
@@ -220,7 +226,7 @@ input.vslider::-moz-range-thumb{width:24px;height:24px;border-radius:50%;backgro
 
 <div class="scrim" id="pairScrim" hidden>
   <div class="sheet" role="dialog" aria-modal="true" aria-labelledby="pairTitle">
-    <h2 id="pairTitle">Ajustar purga</h2>
+    <div class="sheet-h"><div class="grab" aria-hidden="true"></div><div class="tt"><h2 id="pairTitle">Ajustar purga</h2><button class="xbtn" type="button" data-close aria-label="Fechar">✕</button></div></div>
     <div class="pairline" id="pairLine"></div>
     <div class="big">
       <button class="btn" type="button" data-step="-10">−10</button>
@@ -250,7 +256,7 @@ input.vslider::-moz-range-thumb{width:24px;height:24px;border-radius:50%;backgro
 
 <div class="scrim" id="filScrim" hidden>
   <div class="sheet" role="dialog" aria-modal="true" aria-labelledby="filTitle">
-    <h2 id="filTitle">Nova cor</h2>
+    <div class="sheet-h"><div class="grab" aria-hidden="true"></div><div class="tt"><h2 id="filTitle">Nova cor</h2><button class="xbtn" type="button" data-close aria-label="Fechar">✕</button></div></div>
     <div class="field">
       <label class="label" for="filName">Nome</label>
       <input type="text" id="filName" placeholder="Ex.: Branco Jade" maxlength="40">
@@ -742,6 +748,51 @@ mqDark.addEventListener('change',()=>{if(TEMA==='auto')aplicarTema()});
   const t=await lerChave('matriz-purga.tema');if(TEMAS.includes(t))TEMA=t;aplicarTema();
   try{const r=JSON.parse(await lerChave('matriz-purga.recentes')||'[]');if(Array.isArray(r))RECENTES=r}catch(e){}
 })();
+/* ---------- fechar janelas: ✕, puxar para baixo e voltar do Android ---------- */
+const FECHAR={pairScrim:()=>closePair(),filScrim:()=>closeFil()};
+function janelaAberta(){return [...document.querySelectorAll('.scrim')].find(e=>!e.hidden)}
+document.querySelectorAll('.scrim').forEach(sc=>{
+  const sh=sc.querySelector('.sheet');const fechar=FECHAR[sc.id];
+  sh.querySelectorAll('[data-close]').forEach(b=>b.onclick=fechar);
+  let y0=0,t0=0,dy=0,podeArrastar=false,arrastando=false,doTopo=false;
+  const reset=()=>{sh.style.transform='';sc.style.backgroundColor='';sh.classList.remove('dragging','snap')};
+  sh.addEventListener('touchstart',e=>{
+    if(e.touches.length!==1){podeArrastar=false;return}
+    const t=e.target;doTopo=!!t.closest('.sheet-h');
+    const bloqueado=t.closest('.wheel,input,textarea,select,.vslider,.nums,.xbtn');
+    podeArrastar=doTopo||(!bloqueado&&sh.scrollTop<=0);
+    y0=e.touches[0].clientY;t0=Date.now();dy=0;arrastando=false;
+  },{passive:true});
+  sh.addEventListener('touchmove',e=>{
+    if(!podeArrastar)return;
+    dy=e.touches[0].clientY-y0;
+    if(!arrastando){
+      if(dy>8&&(doTopo||sh.scrollTop<=0)){arrastando=true;sh.classList.add('dragging')}
+      else if(dy<-4&&!doTopo){podeArrastar=false;return}
+      else return;
+    }
+    e.preventDefault();
+    const d=Math.max(0,dy);sh.style.transform='translateY('+d+'px)';
+    sc.style.backgroundColor='rgba(10,14,13,'+(0.45*Math.max(0,1-d/sh.offsetHeight))+')';
+  },{passive:false});
+  const fim=()=>{
+    if(!arrastando)return;arrastando=false;sh.classList.remove('dragging');sh.classList.add('snap');
+    const v=dy/Math.max(1,Date.now()-t0);
+    if(dy>sh.offsetHeight*0.3||(v>0.5&&dy>40)){
+      sh.style.transform='translateY(100%)';sc.style.backgroundColor='rgba(10,14,13,0)';
+      setTimeout(()=>{fechar();reset()},200);
+    }else{sh.style.transform='translateY(0)';sc.style.backgroundColor='';setTimeout(reset,230)}
+  };
+  sh.addEventListener('touchend',fim);sh.addEventListener('touchcancel',fim);
+});
+if(CAP.App&&CAP.App.addListener){
+  CAP.App.addListener('backButton',()=>{
+    const j=janelaAberta();
+    if(j){FECHAR[j.id]();return}
+    if(!$('#impConfirm').hidden){$('#impConfirm').hidden=true;return}
+    if(CAP.App.minimizeApp)CAP.App.minimizeApp();else CAP.App.exitApp();
+  });
+}
 /* ---------- trava o fundo enquanto uma janela está aberta ---------- */
 (function(){
   const sc=[...document.querySelectorAll('.scrim')];
