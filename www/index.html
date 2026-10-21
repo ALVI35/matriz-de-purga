@@ -64,16 +64,20 @@ img{max-width:100%}
 @media (max-width:480px){.wrap{padding-left:10px;padding-right:10px}.panel{padding:12px 8px}}
 .mx-tools{display:flex;align-items:center;gap:6px;flex-wrap:wrap}
 .mx-tools .btn{padding:6px 12px;font-family:var(--f-mono);min-width:40px}
-#zoomLbl{font-family:var(--f-mono);font-size:12.5px;color:var(--muted);min-width:44px;text-align:center}
-.mx-wrap{overflow:auto;max-height:82vh;border:1px solid var(--line);border-radius:8px;background:var(--sunk);touch-action:pan-x pan-y;overscroll-behavior:contain}
+.zin{display:inline-flex;align-items:center;gap:2px;font-family:var(--f-mono);font-size:13px;color:var(--muted)}
+.zin input{width:4.2em;text-align:center;font-family:var(--f-mono);padding:6px 4px}
+.mx-wrap{overflow:hidden;border:1px solid var(--line);border-radius:8px;background:var(--sunk);touch-action:pan-y}
+.mx-wrap.zoomed{overflow:auto;max-height:82vh;touch-action:pan-x pan-y}
+.mx-wrap table{margin:0 auto}
+html.modal-open,html.modal-open body{overflow:hidden}
 table.mx{--c:40px;border-collapse:separate;border-spacing:0;table-layout:fixed;font-variant-numeric:tabular-nums}
 .mx th,.mx td{width:var(--c);min-width:var(--c);max-width:var(--c);height:calc(var(--c)*.8);padding:0;border-right:1px solid var(--line);border-bottom:1px solid var(--line)}
 .mx thead th{position:sticky;top:0;z-index:2;background:var(--surface);height:var(--c)}
 .mx tbody th{position:sticky;left:0;z-index:1;background:var(--surface)}
 .mx thead th.corner{left:0;z-index:3;color:var(--muted);font:600 clamp(6px,calc(var(--c)*.2),10px)/1.15 var(--f-body);text-align:center}
-.hsw{width:calc(var(--c)*.66);height:calc(var(--c)*.66);border-radius:calc(var(--c)*.14);display:grid;place-items:center;margin:auto;font:600 clamp(7px,calc(var(--c)*.3),13px)/1 var(--f-mono);box-shadow:inset 0 0 0 1px color-mix(in srgb,var(--ink) 24%,transparent)}
+.hsw{width:calc(var(--c)*.66);height:calc(var(--c)*.66);border-radius:calc(var(--c)*.14);display:grid;place-items:center;margin:auto;font:600 clamp(3px,calc(var(--c)*.3),13px)/1 var(--f-mono);box-shadow:inset 0 0 0 1px color-mix(in srgb,var(--ink) 24%,transparent)}
 .rowh{width:100%;height:100%;border:0;background:transparent;padding:0;cursor:pointer;display:grid;place-items:center}
-.cell{width:100%;height:100%;border:0;background:transparent;cursor:pointer;font-family:var(--f-mono);font-size:clamp(7px,calc(var(--c)*.32),15px);position:relative;display:grid;place-items:center;padding:0;overflow:hidden;color:var(--ink)}
+.cell{width:100%;height:100%;border:0;background:transparent;cursor:pointer;font-family:var(--f-mono);font-size:clamp(3px,calc(var(--c)*.32),15px);position:relative;display:grid;place-items:center;padding:0;overflow:hidden;color:var(--ink)}
 .cell.self{cursor:default;color:var(--line)}
 .cell.est{color:var(--muted);font-style:italic;font-weight:500}
 .cell.bambu{font-weight:500}
@@ -92,8 +96,8 @@ table.mx{--c:40px;border-collapse:separate;border-spacing:0;table-layout:fixed;f
 #copyOut{font-family:var(--f-mono);font-size:12px;min-height:110px}
 
 /* sheets */
-.scrim{position:fixed;inset:0;background:rgba(10,14,13,.45);z-index:20;display:flex;align-items:flex-end;justify-content:center}
-.sheet{background:var(--surface);width:100%;max-width:520px;border-radius:16px 16px 0 0;padding:18px 16px calc(18px + env(safe-area-inset-bottom,0px));display:flex;flex-direction:column;gap:14px;max-height:92vh;overflow:auto;border:1px solid var(--line)}
+.scrim{overscroll-behavior:contain;position:fixed;inset:0;background:rgba(10,14,13,.45);z-index:20;display:flex;align-items:flex-end;justify-content:center}
+.sheet{overscroll-behavior:contain;background:var(--surface);width:100%;max-width:520px;border-radius:16px 16px 0 0;padding:18px 16px calc(18px + env(safe-area-inset-bottom,0px));display:flex;flex-direction:column;gap:14px;max-height:92vh;overflow:auto;border:1px solid var(--line)}
 @media (min-width:640px){.scrim{align-items:center}.sheet{border-radius:16px}}
 .sheet h2{font-family:var(--f-display);font-size:19px;margin:0;font-weight:600}
 .pairline{display:flex;align-items:center;gap:10px;flex-wrap:wrap}
@@ -174,7 +178,7 @@ input.vslider::-moz-range-thumb{width:24px;height:24px;border-radius:50%;backgro
     </div>
     <div class="mx-tools" aria-label="Zoom da matriz">
       <button class="btn" id="zoomOut" type="button" aria-label="Diminuir zoom">−</button>
-      <span id="zoomLbl">100%</span>
+      <label class="zin"><input type="number" id="zoomLbl" min="10" max="500" step="5" value="100" aria-label="Zoom em porcentagem">%</label>
       <button class="btn" id="zoomIn" type="button" aria-label="Aumentar zoom">+</button>
       <button class="btn ghost" id="zoomFit" type="button">Caber na tela</button>
     </div>
@@ -365,13 +369,16 @@ function renderSlots(){
 }
 function hsw(f,num){const e=document.createElement('span');e.className='hsw';e.style.background=f.hex;e.style.color=textOn(f.hex);e.textContent=num;return e}
 let Z=1;
-function cellSize(n){const w=$('#mxWrap').clientWidth-2;return Math.max(12,Math.floor(w*Z/(n+1)))}
+const ZMIN=0.1,ZMAX=5;
+function cellSize(n){const w=$('#mxWrap').clientWidth-2;return Math.max(3,Math.floor(w*Z/(n+1)))}
 function applyZoom(){
-  const t=$('#mxWrap table');$('#zoomLbl').textContent=Math.round(Z*100)+'%';if(!t)return;
+  const zl=$('#zoomLbl');if(document.activeElement!==zl)zl.value=Math.round(Z*100);
+  $('#mxWrap').classList.toggle('zoomed',Z>1.001);
+  const t=$('#mxWrap table');if(!t)return;
   const n=+t.dataset.n,c=cellSize(n);t.style.setProperty('--c',c+'px');t.style.width=(c*(n+1))+'px';
 }
 function setZoom(z,fx,fy){
-  const w=$('#mxWrap');const nz=Math.min(5,Math.max(1,z));const r=nz/Z;
+  const w=$('#mxWrap');const nz=Math.min(ZMAX,Math.max(ZMIN,z));const r=nz/Z;
   if(fx==null){fx=w.clientWidth/2;fy=w.clientHeight/2}
   const sl=w.scrollLeft,st=w.scrollTop;Z=nz;applyZoom();
   w.scrollLeft=(sl+fx)*r-fx;w.scrollTop=(st+fy)*r-fy;
@@ -421,8 +428,12 @@ function renderMatrix(){
   },{passive:false});
   w.addEventListener('touchend',e=>{if(e.touches.length<2)P=null});
   w.addEventListener('wheel',e=>{if(!e.ctrlKey)return;e.preventDefault();const r=w.getBoundingClientRect();setZoom(Z*(e.deltaY<0?1.1:0.9),e.clientX-r.left,e.clientY-r.top)},{passive:false});
-  $('#zoomIn').onclick=()=>setZoom(Z*1.4);
-  $('#zoomOut').onclick=()=>setZoom(Z/1.4);
+  $('#zoomIn').onclick=()=>setZoom(Z*1.25);
+  $('#zoomOut').onclick=()=>setZoom(Z/1.25);
+  const zl=$('#zoomLbl');
+  const zApply=()=>{const v=parseFloat(zl.value);if(isFinite(v))setZoom(v/100);zl.value=Math.round(Z*100)};
+  zl.addEventListener('change',zApply);
+  zl.addEventListener('keydown',e=>{if(e.key==='Enter'){zl.blur();zApply()}});
   $('#zoomFit').onclick=()=>{Z=1;applyZoom();w.scrollLeft=0;w.scrollTop=0};
   window.addEventListener('resize',applyZoom);
 })();
@@ -730,6 +741,12 @@ mqDark.addEventListener('change',()=>{if(TEMA==='auto')aplicarTema()});
 (async()=>{
   const t=await lerChave('matriz-purga.tema');if(TEMAS.includes(t))TEMA=t;aplicarTema();
   try{const r=JSON.parse(await lerChave('matriz-purga.recentes')||'[]');if(Array.isArray(r))RECENTES=r}catch(e){}
+})();
+/* ---------- trava o fundo enquanto uma janela está aberta ---------- */
+(function(){
+  const sc=[...document.querySelectorAll('.scrim')];
+  const upd=()=>document.documentElement.classList.toggle('modal-open',sc.some(e=>!e.hidden));
+  const mo=new MutationObserver(upd);sc.forEach(e=>mo.observe(e,{attributes:true,attributeFilter:['hidden']}));
 })();
 render();carregar();
 
