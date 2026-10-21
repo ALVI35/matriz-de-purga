@@ -1,0 +1,531 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="utf-8">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Chakra+Petch:wght@600;700&family=IBM+Plex+Mono:wght@500;600&family=IBM+Plex+Sans:wght@400;500;600&display=swap">
+<style>
+/* Layout: bancada de oficina — seletor de cores em cima, matriz de/para como peça central, fichas de edição deslizando de baixo */
+:root{
+  --bg:#EDEFEC; --surface:#FFFFFF; --sunk:#F5F6F4; --ink:#1B2220; --muted:#5C6864; --line:#D3D9D5;
+  --accent:#A8621F; --accent-ink:#FFFFFF; --ok:#2B7A4B; --warn:#B0461F;
+  --f-display:"Chakra Petch", "Segoe UI", system-ui, sans-serif;
+  --f-body:"IBM Plex Sans", system-ui, -apple-system, "Segoe UI", sans-serif;
+  --f-mono:"IBM Plex Mono", ui-monospace, "SFMono-Regular", Menlo, monospace;
+  --r:10px;
+}
+@media (prefers-color-scheme: dark){:root:not([data-theme="light"]){
+  --bg:#121615; --surface:#1B201F; --sunk:#161A19; --ink:#E4E9E7; --muted:#93A09B; --line:#2B3230;
+  --accent:#DB9A55; --accent-ink:#1A1206; --ok:#63B783; --warn:#E78B62; color-scheme:dark}}
+:root[data-theme="dark"]{
+  --bg:#121615; --surface:#1B201F; --sunk:#161A19; --ink:#E4E9E7; --muted:#93A09B; --line:#2B3230;
+  --accent:#DB9A55; --accent-ink:#1A1206; --ok:#63B783; --warn:#E78B62; color-scheme:dark}
+*{box-sizing:border-box}
+body{background:var(--bg);color:var(--ink);font-family:var(--f-body);font-size:15px;line-height:1.45}
+.wrap{max-width:980px;margin:0 auto;padding:20px 16px 96px;display:flex;flex-direction:column;gap:18px}
+header h1{font-family:var(--f-display);font-weight:700;font-size:28px;letter-spacing:.01em;margin:0;line-height:1.1;text-wrap:balance}
+header p{margin:6px 0 0;color:var(--muted);max-width:62ch}
+.unit{font-family:var(--f-mono);font-size:.92em}
+.panel{background:var(--surface);border:1px solid var(--line);border-radius:var(--r);padding:14px;display:flex;flex-direction:column;gap:12px;min-width:0}
+.panel-h{display:flex;align-items:center;justify-content:space-between;gap:10px;flex-wrap:wrap}
+.label{font-size:11.5px;text-transform:uppercase;letter-spacing:.09em;color:var(--muted);font-weight:600}
+input,select,textarea,button{font:inherit;color:inherit}
+input[type=search],input[type=text],input[type=number],select,textarea{width:100%;background:var(--sunk);border:1px solid var(--line);border-radius:8px;padding:9px 11px;min-width:0}
+input:focus-visible,select:focus-visible,textarea:focus-visible,button:focus-visible,.cell:focus-visible{outline:2px solid var(--accent);outline-offset:1px}
+.btn{border:1px solid var(--line);background:var(--surface);border-radius:8px;padding:8px 12px;cursor:pointer;font-weight:500;white-space:nowrap}
+.btn:hover{border-color:var(--muted)}
+.btn.primary{background:var(--accent);color:var(--accent-ink);border-color:var(--accent);font-weight:600}
+.btn.ghost{border-color:transparent;background:transparent;color:var(--muted)}
+.btn.danger{color:var(--warn);border-color:color-mix(in srgb,var(--warn) 40%,var(--line))}
+.btn.danger.armed{background:var(--warn);color:var(--surface)}
+.row{display:flex;gap:8px;flex-wrap:wrap;align-items:center}
+.grow{flex:1 1 180px;min-width:0}
+
+/* chips */
+body{margin:0;-webkit-text-size-adjust:100%}
+[hidden]{display:none!important}
+img{max-width:100%}
+:root{padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px)}
+.chips{display:flex;flex-wrap:wrap;gap:6px;max-height:190px;overflow:auto;padding:2px}
+.chip{display:inline-flex;align-items:center;gap:7px;border:1px solid var(--line);background:var(--sunk);border-radius:999px;padding:4px 10px 4px 4px;cursor:pointer;font-size:13.5px;max-width:100%}
+.chip .nm{overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.chip .mt{color:var(--muted);font-size:11.5px}
+.chip[aria-pressed="true"]{border-color:var(--accent);background:color-mix(in srgb,var(--accent) 12%,var(--surface))}
+.sw{width:22px;height:22px;border-radius:6px;flex:none;display:inline-grid;place-items:center;font-family:var(--f-mono);font-size:11.5px;font-weight:600;box-shadow:inset 0 0 0 1px rgba(0,0,0,.18)}
+.slots{display:flex;flex-wrap:wrap;gap:6px}
+.slot{display:inline-flex;align-items:center;gap:6px;background:var(--sunk);border:1px solid var(--line);border-radius:8px;padding:4px 4px 4px 4px;font-size:13px}
+.slot button{border:0;background:transparent;cursor:pointer;color:var(--muted);padding:0 6px;font-size:16px;line-height:1}
+.hint{color:var(--muted);font-size:13px;margin:0}
+.stats{font-family:var(--f-mono);font-size:12.5px;color:var(--muted)}
+.stats b{color:var(--ink);font-weight:600}
+
+/* matrix */
+.mx-wrap{overflow:auto;max-height:72vh;border:1px solid var(--line);border-radius:8px;background:var(--sunk)}
+table.mx{border-collapse:separate;border-spacing:0;font-variant-numeric:tabular-nums}
+.mx th,.mx td{border-right:1px solid var(--line);border-bottom:1px solid var(--line);padding:0}
+.mx thead th{position:sticky;top:0;z-index:2;background:var(--surface);padding:6px 4px;vertical-align:bottom}
+.mx tbody th{position:sticky;left:0;z-index:1;background:var(--surface);text-align:left}
+.mx thead th.corner{left:0;z-index:3;text-align:left;font-size:10.5px;color:var(--muted);font-weight:600;letter-spacing:.06em;text-transform:uppercase;line-height:1.25;padding:6px 8px}
+.colh{display:flex;flex-direction:column;align-items:center;gap:4px;width:58px}
+.colh .n{font-size:10.5px;color:var(--muted);max-width:56px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;font-weight:500}
+.rowh{display:flex;align-items:center;gap:7px;width:118px;padding:6px 8px;border:0;background:transparent;cursor:pointer;text-align:left}
+.rowh .n{font-size:12.5px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;font-weight:500}
+.cell{width:58px;height:44px;border:0;background:transparent;cursor:pointer;font-family:var(--f-mono);font-size:14px;position:relative;display:grid;place-items:center}
+.cell.self{cursor:default;color:var(--line)}
+.cell.est{color:var(--muted);font-style:italic;font-weight:500;font-size:13px}
+.cell.bambu{font-weight:500}
+.cell.ajustado,.cell.testado{font-weight:600}
+.cell.testado::after{content:"";position:absolute;top:5px;right:5px;width:6px;height:6px;border-radius:50%;background:var(--ok)}
+.cell.mixmat::before{content:"";position:absolute;left:0;top:0;bottom:0;width:3px;background:var(--warn)}
+.cell:hover:not(.self){outline:2px solid color-mix(in srgb,var(--accent) 60%,transparent);outline-offset:-2px}
+.legend{display:flex;flex-wrap:wrap;gap:6px 16px;font-size:12.5px;color:var(--muted)}
+.legend span{display:inline-flex;align-items:center;gap:6px}
+.lg{font-family:var(--f-mono);font-size:12px;color:var(--ink);min-width:34px;text-align:center;border-radius:4px;padding:1px 4px}
+.empty{padding:28px 14px;text-align:center;color:var(--muted)}
+.banner{border:1px solid color-mix(in srgb,var(--warn) 45%,var(--line));background:color-mix(in srgb,var(--warn) 9%,var(--surface));padding:10px 12px;border-radius:8px;font-size:13.5px}
+#copyOut{font-family:var(--f-mono);font-size:12px;min-height:110px}
+
+/* sheets */
+.scrim{position:fixed;inset:0;background:rgba(10,14,13,.45);z-index:20;display:flex;align-items:flex-end;justify-content:center}
+.sheet{background:var(--surface);width:100%;max-width:520px;border-radius:16px 16px 0 0;padding:18px 16px calc(18px + env(safe-area-inset-bottom,0px));display:flex;flex-direction:column;gap:14px;max-height:92vh;overflow:auto;border:1px solid var(--line)}
+@media (min-width:640px){.scrim{align-items:center}.sheet{border-radius:16px}}
+.sheet h2{font-family:var(--f-display);font-size:19px;margin:0;font-weight:600}
+.pairline{display:flex;align-items:center;gap:10px;flex-wrap:wrap}
+.pairline .to{color:var(--muted);font-family:var(--f-mono)}
+.big{display:flex;align-items:center;gap:8px}
+.big input{font-family:var(--f-mono);font-size:28px;font-weight:600;text-align:center;padding:8px}
+.big .btn{font-family:var(--f-mono);min-width:52px}
+.seg{display:flex;border:1px solid var(--line);border-radius:8px;overflow:hidden}
+.seg button{flex:1;border:0;background:var(--sunk);padding:9px 6px;cursor:pointer;font-size:13.5px}
+.seg button[aria-pressed="true"]{background:var(--accent);color:var(--accent-ink);font-weight:600}
+.facts{display:grid;grid-template-columns:auto 1fr;gap:4px 12px;font-size:13px;color:var(--muted)}
+.facts dd{margin:0;color:var(--ink);font-family:var(--f-mono)}
+.field{display:flex;flex-direction:column;gap:5px;min-width:0}
+.two{display:grid;grid-template-columns:1fr 1fr;gap:10px}
+.colorrow{display:flex;gap:8px;align-items:center}
+.colorrow input[type=color]{width:48px;height:40px;border:1px solid var(--line);border-radius:8px;padding:2px;background:var(--sunk)}
+.warnline{color:var(--warn);font-size:13px;margin:0}
+.toast{position:fixed;left:50%;transform:translateX(-50%);bottom:calc(18px + env(safe-area-inset-bottom,0px));background:var(--ink);color:var(--bg);padding:9px 14px;border-radius:8px;font-size:13.5px;z-index:30}
+@media (prefers-reduced-motion:no-preference){.sheet{animation:up .18s ease-out}@keyframes up{from{transform:translateY(24px);opacity:.6}}}
+</style>
+</head>
+<body>
+
+<div class="wrap">
+  <header>
+    <h1>Matriz de Purga</h1>
+    <p>Seus volumes de purga salvos na planilha do Google por par de cores, em <span class="unit">mm³</span>. Escolha as cores do projeto na ordem dos slots do AMS e a matriz encolhe para só essas transições, no mesmo layout do Bambu Studio.</p>
+  </header>
+
+  <div class="row"><span class="stats" id="sync">Carregando a planilha…</span><button class="btn ghost" id="syncBtn" type="button">Atualizar agora</button><button class="btn ghost" id="cfgBtn" type="button">Conexão</button></div>
+  <div id="dbBanner" class="banner" hidden></div>
+
+  <section class="panel" aria-labelledby="h-proj">
+    <div class="panel-h">
+      <span class="label" id="h-proj">Cores do projeto</span>
+      <div class="row">
+        <button class="btn ghost" id="clearSel" type="button">Limpar seleção</button>
+        <button class="btn primary" id="newFil" type="button">+ Nova cor</button>
+      </div>
+    </div>
+    <input type="search" id="q" placeholder="Buscar por nome, material ou marca" autocomplete="off">
+    <div class="chips" id="chips"></div>
+    <div>
+      <div class="label" style="margin-bottom:6px">Ordem dos slots</div>
+      <div class="slots" id="slots"></div>
+      <p class="hint" id="slotsHint">Nenhuma cor selecionada: mostrando a matriz completa. Toque nas cores acima na ordem em que estão no AMS.</p>
+    </div>
+  </section>
+
+  <section class="panel" aria-labelledby="h-mx">
+    <div class="panel-h">
+      <span class="label" id="h-mx">De (linha) → para (coluna)</span>
+      <span class="stats" id="stats"></span>
+    </div>
+    <div class="mx-wrap" id="mxWrap"></div>
+    <div class="legend">
+      <span><span class="lg" style="font-weight:600;background:color-mix(in srgb,var(--accent) 22%,var(--surface))">270</span> ajustado por você</span>
+      <span><span class="lg" style="font-weight:600;position:relative;background:color-mix(in srgb,var(--accent) 22%,var(--surface))">270<i style="position:absolute;top:-2px;right:-2px;width:6px;height:6px;border-radius:50%;background:var(--ok)"></i></span> testado em impressão</span>
+      <span><span class="lg">270</span> padrão do Bambu</span>
+      <span><span class="lg" style="font-style:italic;color:var(--muted)">~270</span> estimativa, ainda não salvo</span>
+      <span><span class="lg" style="border-left:3px solid var(--warn)">700</span> materiais diferentes</span>
+    </div>
+    <p class="hint">Toque numa célula para ajustar o valor. Faixa aceita pelo Bambu Studio: <span class="unit">48–900 mm³</span>. Ao digitar esses valores no Bambu, deixe o Multiplier em 1.</p>
+    <div class="row">
+      <button class="btn" id="copyTable" type="button">Copiar tabela</button>
+      <button class="btn" id="copyFlat" type="button">Copiar como lista (.3mf)</button>
+    </div>
+    <textarea id="copyOut" readonly hidden aria-label="Texto para copiar"></textarea>
+  </section>
+</div>
+
+<div class="scrim" id="pairScrim" hidden>
+  <div class="sheet" role="dialog" aria-modal="true" aria-labelledby="pairTitle">
+    <h2 id="pairTitle">Ajustar purga</h2>
+    <div class="pairline" id="pairLine"></div>
+    <div class="big">
+      <button class="btn" type="button" data-step="-10">−10</button>
+      <input type="number" id="pairVal" inputmode="numeric" min="0" max="900" step="1" aria-label="Volume em mm³">
+      <button class="btn" type="button" data-step="10">+10</button>
+    </div>
+    <div class="field">
+      <span class="label">Situação</span>
+      <div class="seg" id="pairStatus">
+        <button type="button" data-v="ajustado" aria-pressed="false">Ajustado</button>
+        <button type="button" data-v="testado" aria-pressed="false">Testado em impressão</button>
+      </div>
+    </div>
+    <div class="field">
+      <label class="label" for="pairNote">Anotação</label>
+      <textarea id="pairNote" rows="2" placeholder="Ex.: ainda manchou nas 2 primeiras camadas com 200"></textarea>
+    </div>
+    <dl class="facts" id="pairFacts"></dl>
+    <p class="warnline" id="pairWarn" hidden></p>
+    <div class="row">
+      <button class="btn primary grow" id="pairSave" type="button">Salvar</button>
+      <button class="btn danger" id="pairClear" type="button">Apagar valor</button>
+      <button class="btn ghost" id="pairCancel" type="button">Fechar</button>
+    </div>
+  </div>
+</div>
+
+<div class="scrim" id="filScrim" hidden>
+  <div class="sheet" role="dialog" aria-modal="true" aria-labelledby="filTitle">
+    <h2 id="filTitle">Nova cor</h2>
+    <div class="field">
+      <label class="label" for="filName">Nome</label>
+      <input type="text" id="filName" placeholder="Ex.: Branco Jade" maxlength="40">
+    </div>
+    <div class="field">
+      <label class="label" for="filHexTxt">Cor</label>
+      <div class="colorrow">
+        <input type="color" id="filHex" value="#ffffff" aria-label="Seletor de cor">
+        <input type="text" id="filHexTxt" value="#FFFFFF" maxlength="7" style="font-family:var(--f-mono)">
+      </div>
+    </div>
+    <div class="two">
+      <div class="field">
+        <label class="label" for="filMat">Material</label>
+        <select id="filMat">
+          <option>PLA</option><option>PLA Silk</option><option>PLA Matte</option><option>PETG</option><option>ABS</option><option>ASA</option><option>TPU</option><option>PA</option><option>PC</option><option>PVA</option><option>Suporte</option><option>Outro</option>
+        </select>
+      </div>
+      <div class="field">
+        <label class="label" for="filBrand">Marca</label>
+        <input type="text" id="filBrand" placeholder="Ex.: Bambu, Voolt3D" maxlength="30">
+      </div>
+    </div>
+    <p class="warnline" id="filErr" hidden></p>
+    <div class="row">
+      <button class="btn primary grow" id="filSave" type="button">Salvar cor</button>
+      <button class="btn danger" id="filDel" type="button" hidden>Excluir cor</button>
+      <button class="btn ghost" id="filCancel" type="button">Fechar</button>
+    </div>
+  </div>
+</div>
+
+<div class="scrim" id="cfgScrim" hidden>
+  <div class="sheet" role="dialog" aria-modal="true" aria-labelledby="cfgTitle">
+    <h2 id="cfgTitle">Conexão com a planilha</h2>
+    <p class="hint">Cole o link do app publicado no Apps Script (termina em /exec) e a senha gerada pela função gerarToken. Os dois ficam guardados só neste celular.</p>
+    <div class="field">
+      <label class="label" for="cfgUrl">Link do app (/exec)</label>
+      <input type="text" id="cfgUrl" autocomplete="off" autocapitalize="off" spellcheck="false" placeholder="https://script.google.com/macros/s/.../exec">
+    </div>
+    <div class="field">
+      <label class="label" for="cfgToken">Senha (API_TOKEN)</label>
+      <input type="text" id="cfgToken" autocomplete="off" autocapitalize="off" spellcheck="false">
+    </div>
+    <p class="warnline" id="cfgErr" hidden></p>
+    <div class="row">
+      <button class="btn primary grow" id="cfgSave" type="button">Testar e salvar</button>
+      <button class="btn ghost" id="cfgCancel" type="button">Fechar</button>
+    </div>
+  </div>
+</div>
+<div class="toast" id="toast" hidden></div>
+
+<script>
+(function(){
+const $=s=>document.querySelector(s);
+const S={fil:new Map(),pairs:new Map(),sel:[],q:'',pairOpen:null,filOpen:null,loaded:false,last:0};
+try{const s=JSON.parse(localStorage.getItem('purga.sel')||'[]');if(Array.isArray(s))S.sel=s}catch(e){}
+function saveSel(){try{localStorage.setItem('purga.sel',JSON.stringify(S.sel))}catch(e){}}
+
+/* ---------- cor ---------- */
+function rgb(h){h=(h||'#888888').replace('#','');if(h.length===3)h=h.split('').map(c=>c+c).join('');const n=parseInt(h,16);return[(n>>16)&255,(n>>8)&255,n&255]}
+function lab(h){let[r,g,b]=rgb(h).map(v=>{v/=255;return v>.04045?Math.pow((v+.055)/1.055,2.4):v/12.92});
+  let x=(r*.4124+g*.3576+b*.1805)/.95047,y=r*.2126+g*.7152+b*.0722,z=(r*.0193+g*.1192+b*.9505)/1.08883;
+  const f=t=>t>.008856?Math.cbrt(t):7.787*t+16/116;x=f(x);y=f(y);z=f(z);return[116*y-16,500*(x-y),200*(y-z)]}
+function textOn(h){const[r,g,b]=rgb(h);return(r*299+g*587+b*114)/1000>150?'#1B2220':'#FFFFFF'}
+function matKey(m){return String(m||'').split(' ')[0].toUpperCase()}
+function mixMat(a,b){return matKey(a.material)!==matKey(b.material)}
+function estimate(a,b){
+  const A=lab(a.hex),B=lab(b.hex);const dE=Math.hypot(A[0]-B[0],A[1]-B[1],A[2]-B[2]);
+  const Ca=Math.hypot(A[1],A[2]),Cb=Math.hypot(B[1],B[2]);
+  let v=60+dE*1.2+Math.max(0,B[0]-A[0])*4.2+Math.max(0,Ca-Cb)*2;
+  if(mixMat(a,b))v=Math.max(v,700);
+  return Math.min(900,Math.max(48,Math.round(v/10)*10));
+}
+function sw(f,num){const e=document.createElement('span');e.className='sw';e.style.background=f.hex;e.style.color=textOn(f.hex);if(num!=null)e.textContent=num;return e}
+
+/* ---------- dados ---------- */
+function list(){return[...S.fil.values()].sort((a,b)=>(a.order??1e9)-(b.order??1e9)||String(a.name).localeCompare(b.name,'pt'))}
+function visible(){const v=S.sel.map(id=>S.fil.get(id)).filter(Boolean);return v.length?v:list()}
+function pid(a,b){return a+'~'+b}
+function info(a,b){
+  if(a.id===b.id)return{kind:'self',value:0};
+  const p=S.pairs.get(pid(a.id,b.id));
+  if(p&&typeof p.value==='number')return{kind:p.status||'ajustado',value:p.value,p};
+  return{kind:'est',value:estimate(a,b)};
+}
+
+/* ---------- render ---------- */
+function render(){renderChips();renderSlots();renderMatrix()}
+function renderChips(){
+  const box=$('#chips');box.textContent='';const q=S.q.trim().toLowerCase();
+  const all=list();
+  if(!all.length){const p=document.createElement('p');p.className='hint';p.textContent='Nenhuma cor cadastrada ainda. Toque em "+ Nova cor" para começar sua biblioteca.';box.append(p);return}
+  const items=all.filter(f=>!q||[f.name,f.material,f.brand,f.hex].join(' ').toLowerCase().includes(q));
+  if(!items.length){const p=document.createElement('p');p.className='hint';p.textContent='Nenhuma cor encontrada para essa busca.';box.append(p);return}
+  for(const f of items){
+    const i=S.sel.indexOf(f.id);
+    const b=document.createElement('button');b.type='button';b.className='chip';b.setAttribute('aria-pressed',i>=0);
+    b.append(sw(f,i>=0?i+1:''));
+    const n=document.createElement('span');n.className='nm';n.textContent=f.name;b.append(n);
+    const m=document.createElement('span');m.className='mt';m.textContent=f.material||'';b.append(m);
+    b.onclick=()=>{const k=S.sel.indexOf(f.id);if(k>=0)S.sel.splice(k,1);else S.sel.push(f.id);saveSel();render()};
+    box.append(b);
+  }
+}
+function renderSlots(){
+  const box=$('#slots');box.textContent='';
+  S.sel=S.sel.filter(id=>S.fil.has(id)||!S.loaded);
+  const v=S.sel.map(id=>S.fil.get(id)).filter(Boolean);
+  $('#slotsHint').hidden=v.length>0;
+  v.forEach((f,i)=>{
+    const s=document.createElement('span');s.className='slot';s.append(sw(f,i+1));
+    const t=document.createElement('span');t.textContent=f.name;s.append(t);
+    const x=document.createElement('button');x.type='button';x.setAttribute('aria-label','Remover '+f.name);x.textContent='×';
+    x.onclick=()=>{S.sel.splice(i,1);saveSel();render()};s.append(x);box.append(s);
+  });
+}
+function renderMatrix(){
+  const wrap=$('#mxWrap');wrap.textContent='';
+  const v=visible();
+  if(!v.length){const d=document.createElement('div');d.className='empty';d.textContent='A matriz aparece aqui assim que houver cores cadastradas.';wrap.append(d);$('#stats').textContent='';return}
+  const numbered=S.sel.length>0;
+  const t=document.createElement('table');t.className='mx';
+  const hr=document.createElement('tr');const c=document.createElement('th');c.className='corner';c.innerHTML='de ↓<br>para →';hr.append(c);
+  v.forEach((f,i)=>{const th=document.createElement('th');th.scope='col';const d=document.createElement('div');d.className='colh';d.append(sw(f,numbered?i+1:''));const n=document.createElement('span');n.className='n';n.textContent=f.name;d.append(n);th.title=f.name+' · '+(f.material||'');th.append(d);hr.append(th)});
+  const th=document.createElement('thead');th.append(hr);t.append(th);
+  const tb=document.createElement('tbody');let pend=0,saved=0,tested=0;
+  v.forEach((a,i)=>{
+    const tr=document.createElement('tr');const rh=document.createElement('th');rh.scope='row';
+    const rb=document.createElement('button');rb.type='button';rb.className='rowh';rb.title='Editar '+a.name;
+    rb.append(sw(a,numbered?i+1:''));const n=document.createElement('span');n.className='n';n.textContent=a.name;rb.append(n);
+    rb.onclick=()=>openFil(a.id);rh.append(rb);tr.append(rh);
+    v.forEach(b=>{
+      const td=document.createElement('td');const k=info(a,b);const btn=document.createElement('button');btn.type='button';
+      btn.className='cell '+k.kind+(a.id!==b.id&&mixMat(a,b)?' mixmat':'');
+      if(k.kind==='self'){btn.textContent='—';btn.disabled=true;btn.setAttribute('aria-label','Mesma cor')}
+      else{
+        if(k.kind==='est'){btn.textContent='~'+k.value;pend++}
+        else{btn.textContent=k.value;saved++;if(k.kind==='testado')tested++;
+          if(k.kind!=='bambu')btn.style.background='color-mix(in srgb,var(--accent) '+Math.round(6+k.value/900*40)+'%,var(--surface))';}
+        btn.setAttribute('aria-label',a.name+' para '+b.name+': '+k.value+' milímetros cúbicos');
+        btn.onclick=()=>openPair(a.id,b.id);
+      }
+      td.append(btn);tr.append(td);
+    });
+    tb.append(tr);
+  });
+  t.append(tb);wrap.append(t);
+  const total=v.length*(v.length-1);
+  $('#stats').innerHTML='<b>'+v.length+'</b> cores · <b>'+total+'</b> transições · <b>'+saved+'</b> salvas'+(tested?' (<b>'+tested+'</b> testadas)':'')+(pend?' · <b>'+pend+'</b> estimadas':'');
+}
+
+/* ---------- toast ---------- */
+let tt;function toast(m){const e=$('#toast');e.textContent=m;e.hidden=false;clearTimeout(tt);tt=setTimeout(()=>e.hidden=true,2200)}
+
+/* ---------- ficha do par ---------- */
+let pStatus='ajustado';
+function setStatus(s){pStatus=s;document.querySelectorAll('#pairStatus button').forEach(b=>b.setAttribute('aria-pressed',b.dataset.v===s))}
+function openPair(fa,fb){
+  const a=S.fil.get(fa),b=S.fil.get(fb);if(!a||!b)return;S.pairOpen=[fa,fb];
+  const k=info(a,b),rev=info(b,a);
+  const line=$('#pairLine');line.textContent='';
+  const ta=document.createElement('strong');ta.textContent=a.name;const tb2=document.createElement('strong');tb2.textContent=b.name;
+  const arr=document.createElement('span');arr.className='to';arr.textContent='→';
+  line.append(sw(a),ta,arr,sw(b),tb2);
+  $('#pairVal').value=k.value;
+  setStatus(k.kind==='testado'?'testado':'ajustado');
+  $('#pairNote').value=(k.p&&k.p.note)||'';
+  const f=$('#pairFacts');f.textContent='';
+  const add=(dt,dd)=>{const a1=document.createElement('dt');a1.textContent=dt;const b1=document.createElement('dd');b1.textContent=dd;f.append(a1,b1)};
+  add('Salvo',k.kind==='est'?'ainda não':(k.kind==='bambu'?'padrão do Bambu Studio':k.kind));
+  add('Estimativa pela cor',estimate(a,b)+' mm³');
+  add('Caminho inverso',(rev.kind==='est'?'~':'')+rev.value+' mm³ ('+b.name+' → '+a.name+')');
+  if(k.p&&k.p.updatedAt)add('Atualizado',new Date(k.p.updatedAt).toLocaleDateString('pt-BR'));
+  const w=$('#pairWarn');
+  if(mixMat(a,b)){w.hidden=false;w.textContent='Materiais diferentes ('+a.material+' → '+b.material+'): a cor sai rápido, mas resto do material anterior prejudica a adesão entre camadas. Valores de 700–800 são comuns nesse caso.'}else w.hidden=true;
+  $('#pairClear').hidden=k.kind==='est';$('#pairClear').classList.remove('armed');$('#pairClear').textContent='Apagar valor';
+  $('#pairScrim').hidden=false;setTimeout(()=>$('#pairVal').focus(),30);
+}
+function closePair(){$('#pairScrim').hidden=true;S.pairOpen=null}
+document.querySelectorAll('#pairStatus button').forEach(b=>b.onclick=()=>setStatus(b.dataset.v));
+document.querySelectorAll('[data-step]').forEach(b=>b.onclick=()=>{const i=$('#pairVal');i.value=Math.max(0,Math.min(900,(parseInt(i.value)||0)+parseInt(b.dataset.step)))});
+$('#pairCancel').onclick=closePair;
+$('#pairScrim').addEventListener('click',e=>{if(e.target.id==='pairScrim')closePair()});
+$('#pairSave').onclick=async()=>{
+  const[fa,fb]=S.pairOpen;const v=parseInt($('#pairVal').value,10);
+  if(!Number.isFinite(v)||v<0||v>900){toast('Digite um valor entre 0 e 900 mm³');return}
+  const body={from:fa,to:fb,value:v,status:pStatus,note:$('#pairNote').value.trim(),updatedAt:new Date().toISOString()};
+  S.pairs.set(pid(fa,fb),body);closePair();renderMatrix();
+  call('salvarPurga',{de_id:fa,para_id:fb,valor_mm3:v,status:pStatus,nota:body.note},'Valor salvo');
+};
+$('#pairClear').onclick=async e=>{
+  const b=e.currentTarget;if(!b.classList.contains('armed')){b.classList.add('armed');b.textContent='Toque de novo para apagar';return}
+  const[fa,fb]=S.pairOpen;S.pairs.delete(pid(fa,fb));closePair();renderMatrix();
+  call('excluirPurga',fa,fb,'Valor apagado');
+};
+
+/* ---------- ficha da cor ---------- */
+function openFil(id){
+  const f=id?S.fil.get(id):null;S.filOpen=id||null;
+  $('#filTitle').textContent=f?'Editar cor':'Nova cor';
+  $('#filName').value=f?f.name:'';const hx=(f?f.hex:'#FFFFFF').toUpperCase();
+  $('#filHex').value=hx.toLowerCase();$('#filHexTxt').value=hx;
+  $('#filMat').value=f&&f.material?f.material:'PLA';$('#filBrand').value=f&&f.brand||'';
+  $('#filErr').hidden=true;const d=$('#filDel');d.hidden=!f;d.classList.remove('armed');d.textContent='Excluir cor';
+  $('#filScrim').hidden=false;setTimeout(()=>$('#filName').focus(),30);
+}
+function closeFil(){$('#filScrim').hidden=true;S.filOpen=null}
+$('#newFil').onclick=()=>openFil(null);
+$('#filCancel').onclick=closeFil;
+$('#filScrim').addEventListener('click',e=>{if(e.target.id==='filScrim')closeFil()});
+$('#filHex').oninput=e=>{$('#filHexTxt').value=e.target.value.toUpperCase()};
+$('#filHexTxt').oninput=e=>{let v=e.target.value.trim();if(!v.startsWith('#'))v='#'+v;if(/^#[0-9a-fA-F]{6}$/.test(v))$('#filHex').value=v.toLowerCase()};
+$('#filSave').onclick=async()=>{
+  const name=$('#filName').value.trim();let hex=$('#filHexTxt').value.trim();if(!hex.startsWith('#'))hex='#'+hex;
+  const err=$('#filErr');
+  if(!name){err.hidden=false;err.textContent='Dê um nome para a cor.';return}
+  if(!/^#[0-9a-fA-F]{6}$/.test(hex)){err.hidden=false;err.textContent='Use o formato #RRGGBB, por exemplo #F4C21A.';return}
+  const id=S.filOpen||('tmp-'+Date.now().toString(36));
+  const old=S.fil.get(id)||{};
+  const body={name,hex:hex.toUpperCase(),material:$('#filMat').value,brand:$('#filBrand').value.trim(),order:old.order??Date.now(),createdAt:old.createdAt||new Date().toISOString()};
+  S.fil.set(id,{id,...body});const isNew=!S.filOpen;closeFil();
+  if(isNew&&S.sel.length){S.sel.push(id);saveSel()}
+  render();
+  call('salvarCor',{id:isNew?'':id,nome:name,hex:body.hex,material:body.material,marca:body.brand},isNew?'Cor adicionada':'Cor atualizada',isNew?id:null);
+};
+$('#filDel').onclick=async e=>{
+  const b=e.currentTarget;if(!b.classList.contains('armed')){b.classList.add('armed');b.textContent='Toque de novo: apaga a cor e seus valores';return}
+  const id=S.filOpen;closeFil();
+  const rel=[...S.pairs.values()].filter(p=>p.from===id||p.to===id);
+  S.fil.delete(id);rel.forEach(p=>S.pairs.delete(pid(p.from,p.to)));S.sel=S.sel.filter(x=>x!==id);saveSel();render();
+  call('excluirCor',id,'Cor excluída');
+};
+
+/* ---------- busca, seleção ---------- */
+$('#q').oninput=e=>{S.q=e.target.value;renderChips()};
+$('#clearSel').onclick=()=>{S.sel=[];saveSel();render()};
+
+/* ---------- copiar ---------- */
+function copy(text,msg){
+  const out=$('#copyOut');out.value=text;
+  const fallback=()=>{out.hidden=false;out.focus();out.select();toast('Selecione o texto abaixo e copie')};
+  try{navigator.clipboard.writeText(text).then(()=>{out.hidden=true;toast(msg)},fallback)}catch(e){fallback()}
+}
+$('#copyTable').onclick=()=>{
+  const v=visible();if(!v.length)return;
+  const lines=['de\\para\t'+v.map((f,i)=>(S.sel.length?(i+1)+' ':'')+f.name).join('\t')];
+  v.forEach((a,i)=>lines.push((S.sel.length?(i+1)+' ':'')+a.name+'\t'+v.map(b=>info(a,b).value).join('\t')));
+  copy(lines.join('\n'),'Tabela copiada');
+};
+$('#copyFlat').onclick=()=>{
+  const v=visible();if(!v.length)return;const arr=[];
+  v.forEach(a=>v.forEach(b=>arr.push(String(info(a,b).value))));
+  copy('"flush_volumes_matrix": '+JSON.stringify(arr),'Lista copiada');
+};
+
+/* ---------- teclado ---------- */
+document.addEventListener('keydown',e=>{
+  if(e.key==='Escape'){if(!$('#pairScrim').hidden)closePair();if(!$('#filScrim').hidden)closeFil()}
+  if(e.key==='Enter'&&!$('#pairScrim').hidden&&document.activeElement===$('#pairVal'))$('#pairSave').click();
+});
+
+/* ---------- armazenamento (Google Sheets via Apps Script) ---------- */
+const CFG={url:'',token:''};
+try{Object.assign(CFG,JSON.parse(localStorage.getItem('purga.cfg')||'{}'))}catch(e){}
+function backendPronto(){return !!(CFG.url&&CFG.token)}
+function semConexao(){banner('Conecte o app à sua planilha: toque em Conexão e cole o link /exec e a senha.');abrirCfg()}
+const MAPA={
+  obterDados:()=>({acao:'dados'}),
+  salvarCor:c=>({acao:'salvarCor',cor:c}),
+  excluirCor:id=>({acao:'excluirCor',id}),
+  salvarPurga:p=>({acao:'salvarPurga',purga:p}),
+  excluirPurga:(de,para)=>({acao:'excluirPurga',de_id:de,para_id:para})
+};
+function backend(fn,...args){return postApi(CFG,MAPA[fn](...args))}
+async function postApi(cfg,body){
+  let r;
+  try{r=await fetch(cfg.url,{method:'POST',headers:{'Content-Type':'text/plain;charset=utf-8'},body:JSON.stringify(Object.assign({},body,{token:cfg.token}))})}
+  catch(e){throw new Error('Sem conexão com a internet ou link inacessível.')}
+  const txt=await r.text();let j;
+  try{j=JSON.parse(txt)}catch(e){throw new Error('Resposta inesperada. Confira o link /exec e se a implantação está com acesso "Qualquer pessoa".')}
+  if(!j.ok)throw new Error(j.erro==='token inválido'?'Senha incorreta.':j.erro);
+  return j.dados;
+}
+function abrirCfg(){$('#cfgUrl').value=CFG.url;$('#cfgToken').value=CFG.token;$('#cfgErr').hidden=true;$('#cfgScrim').hidden=false;setTimeout(()=>$('#cfgUrl').focus(),30)}
+function fecharCfg(){$('#cfgScrim').hidden=true}
+$('#cfgBtn').onclick=abrirCfg;
+$('#cfgCancel').onclick=fecharCfg;
+$('#cfgSave').onclick=async()=>{
+  const url=$('#cfgUrl').value.trim(),token=$('#cfgToken').value.trim(),err=$('#cfgErr');
+  if(!/^https:\/\/script\.google\.com\/macros\/s\/[^/]+\/exec$/.test(url)){err.hidden=false;err.textContent='O link deve ser o do app publicado, terminando em /exec.';return}
+  if(!token){err.hidden=false;err.textContent='Cole a senha (API_TOKEN).';return}
+  const b=$('#cfgSave');b.disabled=true;b.textContent='Testando…';
+  try{const d=await postApi({url,token},{acao:'dados'});
+    CFG.url=url;CFG.token=token;try{localStorage.setItem('purga.cfg',JSON.stringify(CFG))}catch(e){}
+    fecharCfg();apply(d);setSync();toast('Conectado à planilha')}
+  catch(e){err.hidden=false;err.textContent=e.message}
+  finally{b.disabled=false;b.textContent='Testar e salvar'}
+};
+
+function apply(d){
+  if(!d)return;
+  S.fil=new Map(d.cores.map(c=>[c.id,{id:c.id,name:c.nome,hex:c.hex,material:c.material,brand:c.marca,order:c.ordem,createdAt:c.criado_em}]));
+  S.pairs=new Map(d.purga.map(p=>[pid(p.de_id,p.para_id),{from:p.de_id,to:p.para_id,value:p.valor_mm3,status:p.status,note:p.nota,updatedAt:p.atualizado_em}]));
+  S.loaded=true;S.last=Date.now();$('#dbBanner').hidden=true;render();
+}
+let busy=0;
+function call(fn,...args){
+  // último argumento de texto = mensagem de sucesso; opcional: id temporário a trocar pelo definitivo
+  let tmp=null;if(args.length&&(args[args.length-1]===null||String(args[args.length-1]).startsWith('tmp-'))){tmp=args.pop()}
+  const msg=args.pop();
+  if(!backendPronto()){toast('Configure a conexão com a planilha primeiro');return}
+  busy++;setSync('Salvando…');
+  const before=new Set(S.fil.keys());
+  backend(fn,...args).then(d=>{busy--;
+      if(tmp){const novo=d.cores.map(c=>c.id).find(x=>!before.has(x));S.sel=S.sel.map(x=>x===tmp?novo:x).filter(Boolean);saveSel()}
+      apply(d);toast(msg);setSync()})
+    .catch(e=>{busy--;toast((e&&e.message)||'Não foi possível salvar. Tente de novo.');refresh()});
+}
+function refresh(){
+  if(!backendPronto()){semConexao();return}
+  if(busy)return;setSync('Atualizando…');
+  backend('obterDados').then(d=>{if(!busy)apply(d);setSync()})
+    .catch(e=>{banner('Não consegui ler a planilha: '+((e&&e.message)||'erro desconhecido'));setSync()});
+}
+function setSync(t){const e=$('#sync');if(!e)return;if(t){e.textContent=t;return}
+  e.textContent=S.last?'Sincronizado às '+new Date(S.last).toLocaleTimeString('pt-BR',{hour:'2-digit',minute:'2-digit'}):''}
+function banner(m){const b=$('#dbBanner');b.textContent=m;b.hidden=false}
+render();refresh();
+setInterval(()=>{if(document.visibilityState==='visible')refresh()},45000);
+document.addEventListener('visibilitychange',()=>{if(document.visibilityState==='visible'&&Date.now()-(S.last||0)>5000)refresh()});
+$('#syncBtn').onclick=refresh;
+
+})();
+</script>
+</body>
+</html>

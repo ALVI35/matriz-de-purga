@@ -1,0 +1,83 @@
+name: Gerar APK
+
+on:
+  push:
+    branches: [main]
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+jobs:
+  apk:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+
+      - uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: 21
+
+      - uses: android-actions/setup-android@v3
+
+      - name: Instalar dependências
+        run: npm install --no-audit --no-fund
+
+      - name: Criar projeto Android
+        run: npx cap add android
+
+      - name: Gerar ícones e tela de abertura
+        run: npx capacitor-assets generate --android
+
+      - name: Copiar a tela para o projeto
+        run: npx cap sync android
+
+      - name: Definir versão
+        run: |
+          sed -i -E "s/versionCode [0-9]+/versionCode ${{ github.run_number }}/" android/app/build.gradle
+          sed -i -E "s/versionName \"[^\"]+\"/versionName \"1.0.${{ github.run_number }}\"/" android/app/build.gradle
+          grep -E "versionCode|versionName" android/app/build.gradle
+
+      - name: Compilar APK
+        working-directory: android
+        run: |
+          chmod +x gradlew
+          ./gradlew assembleRelease --no-daemon
+
+      - name: Assinar APK
+        env:
+          KEYSTORE_PASSWORD: ${{ secrets.KEYSTORE_PASSWORD }}
+        run: |
+          if [ -z "$KEYSTORE_PASSWORD" ]; then
+            echo "::error::Falta o segredo KEYSTORE_PASSWORD (Settings > Secrets and variables > Actions)."
+            exit 1
+          fi
+          BT=$(ls "$ANDROID_HOME/build-tools" | sort -V | tail -1)
+          IN=android/app/build/outputs/apk/release/app-release-unsigned.apk
+          OUT=MatrizDePurga-1.0.${{ github.run_number }}.apk
+          "$ANDROID_HOME/build-tools/$BT/zipalign" -f -p 4 "$IN" aligned.apk
+          "$ANDROID_HOME/build-tools/$BT/apksigner" sign --ks assinatura/matriz-purga.jks --ks-type PKCS12 \
+            --ks-pass env:KEYSTORE_PASSWORD --ks-key-alias matrizpurga --out "$OUT" aligned.apk
+          "$ANDROID_HOME/build-tools/$BT/apksigner" verify "$OUT"
+          echo "APK=$OUT" >> "$GITHUB_ENV"
+
+      - uses: actions/upload-artifact@v4
+        with:
+          name: apk
+          path: ${{ env.APK }}
+
+      - name: Publicar em Releases
+        uses: softprops/action-gh-release@v2
+        with:
+          tag_name: v1.0.${{ github.run_number }}
+          name: Matriz de Purga 1.0.${{ github.run_number }}
+          body: |
+            Baixe o arquivo .apk abaixo pelo celular e instale.
+            Versão gerada a partir do commit ${{ github.sha }}.
+          files: ${{ env.APK }}
+          make_latest: true
