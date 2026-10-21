@@ -2,13 +2,16 @@
   "name": "matriz-de-purga",
   "version": "1.0.0",
   "private": true,
-  "description": "App Android para gerenciar volumes de purga (flushing) da Bambu Lab por par de cores, usando uma planilha do Google como base.",
+  "description": "App Android para gerenciar volumes de purga (flushing) da Bambu Lab por par de cores. Dados guardados no próprio celular.",
   "scripts": {
     "sync": "cap sync android"
   },
   "dependencies": {
     "@capacitor/android": "^8.5.3",
-    "@capacitor/core": "^8.5.3"
+    "@capacitor/core": "^8.5.3",
+    "@capacitor/preferences": "^8.0.1",
+    "@capacitor/filesystem": "^8.1.5",
+    "@capacitor/share": "^8.0.3"
   },
   "devDependencies": {
     "@capacitor/assets": "^3.0.5",

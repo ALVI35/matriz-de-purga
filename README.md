@@ -1,28 +1,32 @@
 # Matriz de Purga
 
-App Android para guardar e consultar os volumes de purga (flushing volumes) da Bambu Lab por par de cores de/para. Os dados ficam numa planilha do Google, então o mesmo conteúdo aparece no celular (este app) e no computador (o app web do Apps Script).
+App Android para guardar e consultar os volumes de purga (flushing volumes) da Bambu Lab por par de cores de/para. Os dados ficam guardados no próprio celular, sem conta nem internet.
 
 ## Baixar e instalar
 
 1. No celular, abra a página **Releases** deste repositório e baixe o `.apk` da versão mais recente.
 2. Abra o arquivo. Se o Android pedir, permita "instalar apps desta fonte" para o navegador.
-3. Na primeira vez, o app pede o **link /exec** e a **senha** (API_TOKEN). Eles ficam guardados só no celular.
 
-Versões novas são instaladas por cima da anterior, sem perder a configuração.
+Versões novas são instaladas por cima da anterior, sem perder os dados.
 
-## Como funciona
+## Backup
+
+Os dados ficam numa área privada do app. Desinstalar o app ou usar "Limpar dados" apaga tudo, então use **Exportar backup** de vez em quando e guarde o arquivo `.json` no Drive ou no WhatsApp. **Importar backup** restaura a partir desse arquivo.
+
+## Estrutura
 
 ```
-www/index.html          tela do app Android (fala com a planilha pela API JSON)
-apps-script/Code.gs     servidor no Google Apps Script (planilha + API + senha)
-apps-script/Index.html  tela do app web para o computador
+www/index.html          o app (tela, matriz com zoom, dados locais, backup)
 assets/                 ícone e tela de abertura
 .github/workflows/      gera e assina o APK a cada push na branch main
+apps-script/            versão integrada com Google Sheets (não usada pelo app por enquanto)
 ```
 
-A planilha tem três abas: **Cores**, **Purga** (uma linha por transição, com status e anotação) e **Matriz** (visão de/para calculada por fórmulas).
+## Versão integrada (opcional, futura)
 
-## Configurar o Apps Script (uma vez)
+A pasta `apps-script/` guarda um servidor em Google Apps Script que usa uma planilha como base e expõe uma API JSON. Não está ligado ao app atual.
+
+### Configurar o Apps Script
 
 1. Na planilha, abra **Extensões > Apps Script** e cole `apps-script/Code.gs` e `apps-script/Index.html` (arquivo HTML chamado `Index`).
 2. Rode a função `gerarToken` e copie a senha que aparece no registro de execução.
@@ -31,7 +35,7 @@ A planilha tem três abas: **Cores**, **Purga** (uma linha por transição, com 
 
 Sem a senha, o link mostra apenas "Acesso restrito" e a API responde `token inválido`.
 
-## API
+### API
 
 `POST` no link `/exec`, corpo JSON (Content-Type `text/plain`):
 

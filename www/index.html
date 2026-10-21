@@ -2,6 +2,8 @@
 <html lang="pt-BR">
 <head>
 <meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Matriz de Purga</title>
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Chakra+Petch:wght@600;700&family=IBM+Plex+Mono:wght@500;600&family=IBM+Plex+Sans:wght@400;500;600&display=swap">
 <style>
 /* Layout: bancada de oficina — seletor de cores em cima, matriz de/para como peça central, fichas de edição deslizando de baixo */
@@ -59,24 +61,29 @@ img{max-width:100%}
 .stats b{color:var(--ink);font-weight:600}
 
 /* matrix */
-.mx-wrap{overflow:auto;max-height:72vh;border:1px solid var(--line);border-radius:8px;background:var(--sunk)}
-table.mx{border-collapse:separate;border-spacing:0;font-variant-numeric:tabular-nums}
-.mx th,.mx td{border-right:1px solid var(--line);border-bottom:1px solid var(--line);padding:0}
-.mx thead th{position:sticky;top:0;z-index:2;background:var(--surface);padding:6px 4px;vertical-align:bottom}
-.mx tbody th{position:sticky;left:0;z-index:1;background:var(--surface);text-align:left}
-.mx thead th.corner{left:0;z-index:3;text-align:left;font-size:10.5px;color:var(--muted);font-weight:600;letter-spacing:.06em;text-transform:uppercase;line-height:1.25;padding:6px 8px}
-.colh{display:flex;flex-direction:column;align-items:center;gap:4px;width:58px}
-.colh .n{font-size:10.5px;color:var(--muted);max-width:56px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;font-weight:500}
-.rowh{display:flex;align-items:center;gap:7px;width:118px;padding:6px 8px;border:0;background:transparent;cursor:pointer;text-align:left}
-.rowh .n{font-size:12.5px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;font-weight:500}
-.cell{width:58px;height:44px;border:0;background:transparent;cursor:pointer;font-family:var(--f-mono);font-size:14px;position:relative;display:grid;place-items:center}
+@media (max-width:480px){.wrap{padding-left:10px;padding-right:10px}.panel{padding:12px 8px}}
+.mx-tools{display:flex;align-items:center;gap:6px;flex-wrap:wrap}
+.mx-tools .btn{padding:6px 12px;font-family:var(--f-mono);min-width:40px}
+#zoomLbl{font-family:var(--f-mono);font-size:12.5px;color:var(--muted);min-width:44px;text-align:center}
+.mx-wrap{overflow:auto;max-height:82vh;border:1px solid var(--line);border-radius:8px;background:var(--sunk);touch-action:pan-x pan-y;overscroll-behavior:contain}
+table.mx{--c:40px;border-collapse:separate;border-spacing:0;table-layout:fixed;font-variant-numeric:tabular-nums}
+.mx th,.mx td{width:var(--c);min-width:var(--c);max-width:var(--c);height:calc(var(--c)*.8);padding:0;border-right:1px solid var(--line);border-bottom:1px solid var(--line)}
+.mx thead th{position:sticky;top:0;z-index:2;background:var(--surface);height:var(--c)}
+.mx tbody th{position:sticky;left:0;z-index:1;background:var(--surface)}
+.mx thead th.corner{left:0;z-index:3;color:var(--muted);font:600 clamp(6px,calc(var(--c)*.2),10px)/1.15 var(--f-body);text-align:center}
+.hsw{width:calc(var(--c)*.66);height:calc(var(--c)*.66);border-radius:calc(var(--c)*.14);display:grid;place-items:center;margin:auto;font:600 clamp(7px,calc(var(--c)*.3),13px)/1 var(--f-mono);box-shadow:inset 0 0 0 1px rgba(0,0,0,.18)}
+.rowh{width:100%;height:100%;border:0;background:transparent;padding:0;cursor:pointer;display:grid;place-items:center}
+.cell{width:100%;height:100%;border:0;background:transparent;cursor:pointer;font-family:var(--f-mono);font-size:clamp(7px,calc(var(--c)*.32),15px);position:relative;display:grid;place-items:center;padding:0;overflow:hidden;color:var(--ink)}
 .cell.self{cursor:default;color:var(--line)}
-.cell.est{color:var(--muted);font-style:italic;font-weight:500;font-size:13px}
+.cell.est{color:var(--muted);font-style:italic;font-weight:500}
 .cell.bambu{font-weight:500}
 .cell.ajustado,.cell.testado{font-weight:600}
-.cell.testado::after{content:"";position:absolute;top:5px;right:5px;width:6px;height:6px;border-radius:50%;background:var(--ok)}
-.cell.mixmat::before{content:"";position:absolute;left:0;top:0;bottom:0;width:3px;background:var(--warn)}
-.cell:hover:not(.self){outline:2px solid color-mix(in srgb,var(--accent) 60%,transparent);outline-offset:-2px}
+.cell.testado::after{content:"";position:absolute;top:2px;right:2px;width:max(4px,calc(var(--c)*.1));height:max(4px,calc(var(--c)*.1));border-radius:50%;background:var(--ok)}
+.cell.mixmat::before{content:"";position:absolute;left:0;top:0;bottom:0;width:max(2px,calc(var(--c)*.05));background:var(--warn)}
+.mx-key{display:flex;flex-wrap:wrap;gap:4px 12px;font-size:12.5px}
+.mx-key span{display:inline-flex;align-items:center;gap:5px}
+.mx-key .sw{width:18px;height:18px;font-size:10px;border-radius:5px}
+.confirm{border:1px solid var(--line);background:var(--sunk);border-radius:8px;padding:10px 12px;display:flex;flex-direction:column;gap:8px}
 .legend{display:flex;flex-wrap:wrap;gap:6px 16px;font-size:12.5px;color:var(--muted)}
 .legend span{display:inline-flex;align-items:center;gap:6px}
 .lg{font-family:var(--f-mono);font-size:12px;color:var(--ink);min-width:34px;text-align:center;border-radius:4px;padding:1px 4px}
@@ -113,11 +120,9 @@ table.mx{border-collapse:separate;border-spacing:0;font-variant-numeric:tabular-
 <div class="wrap">
   <header>
     <h1>Matriz de Purga</h1>
-    <p>Seus volumes de purga salvos na planilha do Google por par de cores, em <span class="unit">mm³</span>. Escolha as cores do projeto na ordem dos slots do AMS e a matriz encolhe para só essas transições, no mesmo layout do Bambu Studio.</p>
+    <p>Seus volumes de purga por par de cores, guardados neste celular, em <span class="unit">mm³</span>. Escolha as cores do projeto na ordem dos slots do AMS e a matriz encolhe para só essas transições, no mesmo layout do Bambu Studio.</p>
   </header>
 
-  <div class="row"><span class="stats" id="sync">Carregando a planilha…</span><button class="btn ghost" id="syncBtn" type="button">Atualizar agora</button><button class="btn ghost" id="cfgBtn" type="button">Conexão</button></div>
-  <div id="dbBanner" class="banner" hidden></div>
 
   <section class="panel" aria-labelledby="h-proj">
     <div class="panel-h">
@@ -141,20 +146,45 @@ table.mx{border-collapse:separate;border-spacing:0;font-variant-numeric:tabular-
       <span class="label" id="h-mx">De (linha) → para (coluna)</span>
       <span class="stats" id="stats"></span>
     </div>
+    <div class="mx-tools" aria-label="Zoom da matriz">
+      <button class="btn" id="zoomOut" type="button" aria-label="Diminuir zoom">−</button>
+      <span id="zoomLbl">100%</span>
+      <button class="btn" id="zoomIn" type="button" aria-label="Aumentar zoom">+</button>
+      <button class="btn ghost" id="zoomFit" type="button">Caber na tela</button>
+    </div>
     <div class="mx-wrap" id="mxWrap"></div>
+    <div class="mx-key" id="mxKey"></div>
     <div class="legend">
       <span><span class="lg" style="font-weight:600;background:color-mix(in srgb,var(--accent) 22%,var(--surface))">270</span> ajustado por você</span>
       <span><span class="lg" style="font-weight:600;position:relative;background:color-mix(in srgb,var(--accent) 22%,var(--surface))">270<i style="position:absolute;top:-2px;right:-2px;width:6px;height:6px;border-radius:50%;background:var(--ok)"></i></span> testado em impressão</span>
       <span><span class="lg">270</span> padrão do Bambu</span>
-      <span><span class="lg" style="font-style:italic;color:var(--muted)">~270</span> estimativa, ainda não salvo</span>
+      <span><span class="lg" style="font-style:italic;color:var(--muted)">270</span> estimativa, ainda não salvo</span>
       <span><span class="lg" style="border-left:3px solid var(--warn)">700</span> materiais diferentes</span>
     </div>
-    <p class="hint">Toque numa célula para ajustar o valor. Faixa aceita pelo Bambu Studio: <span class="unit">48–900 mm³</span>. Ao digitar esses valores no Bambu, deixe o Multiplier em 1.</p>
+    <p class="hint">Toque numa célula para ajustar o valor e no quadrado colorido da linha para editar a cor. Use dois dedos na matriz para dar zoom. Faixa aceita pelo Bambu Studio: <span class="unit">48–900 mm³</span>. Ao digitar esses valores no Bambu, deixe o Multiplier em 1.</p>
     <div class="row">
       <button class="btn" id="copyTable" type="button">Copiar tabela</button>
       <button class="btn" id="copyFlat" type="button">Copiar como lista (.3mf)</button>
     </div>
     <textarea id="copyOut" readonly hidden aria-label="Texto para copiar"></textarea>
+  </section>
+
+  <section class="panel" aria-labelledby="h-bk">
+    <span class="label" id="h-bk">Backup</span>
+    <p class="hint">Os dados ficam só neste celular. Exporte um backup de vez em quando e guarde no Drive ou no WhatsApp: com ele você recupera tudo se reinstalar o app ou trocar de celular.</p>
+    <div class="row">
+      <button class="btn" id="expBtn" type="button">Exportar backup</button>
+      <button class="btn" id="impBtn" type="button">Importar backup</button>
+      <input type="file" id="impFile" accept="application/json,.json" hidden>
+    </div>
+    <div class="confirm" id="impConfirm" hidden>
+      <p class="hint" id="impText" style="color:var(--ink)"></p>
+      <div class="row">
+        <button class="btn danger" id="impOk" type="button">Substituir dados</button>
+        <button class="btn ghost" id="impCancel" type="button">Cancelar</button>
+      </div>
+    </div>
+    <p class="hint" id="bkInfo"></p>
   </section>
 </div>
 
@@ -223,25 +253,7 @@ table.mx{border-collapse:separate;border-spacing:0;font-variant-numeric:tabular-
   </div>
 </div>
 
-<div class="scrim" id="cfgScrim" hidden>
-  <div class="sheet" role="dialog" aria-modal="true" aria-labelledby="cfgTitle">
-    <h2 id="cfgTitle">Conexão com a planilha</h2>
-    <p class="hint">Cole o link do app publicado no Apps Script (termina em /exec) e a senha gerada pela função gerarToken. Os dois ficam guardados só neste celular.</p>
-    <div class="field">
-      <label class="label" for="cfgUrl">Link do app (/exec)</label>
-      <input type="text" id="cfgUrl" autocomplete="off" autocapitalize="off" spellcheck="false" placeholder="https://script.google.com/macros/s/.../exec">
-    </div>
-    <div class="field">
-      <label class="label" for="cfgToken">Senha (API_TOKEN)</label>
-      <input type="text" id="cfgToken" autocomplete="off" autocapitalize="off" spellcheck="false">
-    </div>
-    <p class="warnline" id="cfgErr" hidden></p>
-    <div class="row">
-      <button class="btn primary grow" id="cfgSave" type="button">Testar e salvar</button>
-      <button class="btn ghost" id="cfgCancel" type="button">Fechar</button>
-    </div>
-  </div>
-</div>
+
 <div class="toast" id="toast" hidden></div>
 
 <script>
@@ -309,40 +321,69 @@ function renderSlots(){
     x.onclick=()=>{S.sel.splice(i,1);saveSel();render()};s.append(x);box.append(s);
   });
 }
+function hsw(f,num){const e=document.createElement('span');e.className='hsw';e.style.background=f.hex;e.style.color=textOn(f.hex);e.textContent=num;return e}
+let Z=1;
+function cellSize(n){const w=$('#mxWrap').clientWidth-2;return Math.max(12,Math.floor(w*Z/(n+1)))}
+function applyZoom(){
+  const t=$('#mxWrap table');$('#zoomLbl').textContent=Math.round(Z*100)+'%';if(!t)return;
+  const n=+t.dataset.n,c=cellSize(n);t.style.setProperty('--c',c+'px');t.style.width=(c*(n+1))+'px';
+}
+function setZoom(z,fx,fy){
+  const w=$('#mxWrap');const nz=Math.min(5,Math.max(1,z));const r=nz/Z;
+  if(fx==null){fx=w.clientWidth/2;fy=w.clientHeight/2}
+  const sl=w.scrollLeft,st=w.scrollTop;Z=nz;applyZoom();
+  w.scrollLeft=(sl+fx)*r-fx;w.scrollTop=(st+fy)*r-fy;
+}
 function renderMatrix(){
-  const wrap=$('#mxWrap');wrap.textContent='';
+  const wrap=$('#mxWrap');wrap.textContent='';const key=$('#mxKey');key.textContent='';
   const v=visible();
   if(!v.length){const d=document.createElement('div');d.className='empty';d.textContent='A matriz aparece aqui assim que houver cores cadastradas.';wrap.append(d);$('#stats').textContent='';return}
-  const numbered=S.sel.length>0;
-  const t=document.createElement('table');t.className='mx';
-  const hr=document.createElement('tr');const c=document.createElement('th');c.className='corner';c.innerHTML='de ↓<br>para →';hr.append(c);
-  v.forEach((f,i)=>{const th=document.createElement('th');th.scope='col';const d=document.createElement('div');d.className='colh';d.append(sw(f,numbered?i+1:''));const n=document.createElement('span');n.className='n';n.textContent=f.name;d.append(n);th.title=f.name+' · '+(f.material||'');th.append(d);hr.append(th)});
+  const t=document.createElement('table');t.className='mx';t.dataset.n=v.length;
+  const hr=document.createElement('tr');const c=document.createElement('th');c.className='corner';c.innerHTML='de↓<br>para→';hr.append(c);
+  v.forEach((f,i)=>{const th=document.createElement('th');th.scope='col';th.title=f.name;th.append(hsw(f,i+1));hr.append(th)});
   const th=document.createElement('thead');th.append(hr);t.append(th);
   const tb=document.createElement('tbody');let pend=0,saved=0,tested=0;
   v.forEach((a,i)=>{
     const tr=document.createElement('tr');const rh=document.createElement('th');rh.scope='row';
-    const rb=document.createElement('button');rb.type='button';rb.className='rowh';rb.title='Editar '+a.name;
-    rb.append(sw(a,numbered?i+1:''));const n=document.createElement('span');n.className='n';n.textContent=a.name;rb.append(n);
-    rb.onclick=()=>openFil(a.id);rh.append(rb);tr.append(rh);
+    const rb=document.createElement('button');rb.type='button';rb.className='rowh';rb.title='Editar '+a.name;rb.setAttribute('aria-label','Editar '+a.name);
+    rb.append(hsw(a,i+1));rb.onclick=()=>openFil(a.id);rh.append(rb);tr.append(rh);
     v.forEach(b=>{
       const td=document.createElement('td');const k=info(a,b);const btn=document.createElement('button');btn.type='button';
       btn.className='cell '+k.kind+(a.id!==b.id&&mixMat(a,b)?' mixmat':'');
       if(k.kind==='self'){btn.textContent='—';btn.disabled=true;btn.setAttribute('aria-label','Mesma cor')}
       else{
-        if(k.kind==='est'){btn.textContent='~'+k.value;pend++}
-        else{btn.textContent=k.value;saved++;if(k.kind==='testado')tested++;
+        btn.textContent=k.value;
+        if(k.kind==='est')pend++;
+        else{saved++;if(k.kind==='testado')tested++;
           if(k.kind!=='bambu')btn.style.background='color-mix(in srgb,var(--accent) '+Math.round(6+k.value/900*40)+'%,var(--surface))';}
-        btn.setAttribute('aria-label',a.name+' para '+b.name+': '+k.value+' milímetros cúbicos');
+        btn.setAttribute('aria-label',a.name+' para '+b.name+': '+k.value+' milímetros cúbicos'+(k.kind==='est'?', estimativa':''));
         btn.onclick=()=>openPair(a.id,b.id);
       }
       td.append(btn);tr.append(td);
     });
     tb.append(tr);
   });
-  t.append(tb);wrap.append(t);
+  t.append(tb);wrap.append(t);applyZoom();
+  v.forEach((f,i)=>{const sp=document.createElement('span');sp.append(sw(f,i+1));const n=document.createElement('span');n.textContent=f.name;sp.append(n);key.append(sp)});
   const total=v.length*(v.length-1);
   $('#stats').innerHTML='<b>'+v.length+'</b> cores · <b>'+total+'</b> transições · <b>'+saved+'</b> salvas'+(tested?' (<b>'+tested+'</b> testadas)':'')+(pend?' · <b>'+pend+'</b> estimadas':'');
 }
+(function(){
+  const w=$('#mxWrap');let P=null;
+  const dist=(a,b)=>Math.hypot(a.clientX-b.clientX,a.clientY-b.clientY);
+  w.addEventListener('touchstart',e=>{if(e.touches.length===2){P={d:dist(e.touches[0],e.touches[1]),z:Z}}},{passive:true});
+  w.addEventListener('touchmove',e=>{
+    if(!P||e.touches.length!==2)return;e.preventDefault();
+    const a=e.touches[0],b=e.touches[1],r=w.getBoundingClientRect();
+    setZoom(P.z*dist(a,b)/P.d,(a.clientX+b.clientX)/2-r.left,(a.clientY+b.clientY)/2-r.top);
+  },{passive:false});
+  w.addEventListener('touchend',e=>{if(e.touches.length<2)P=null});
+  w.addEventListener('wheel',e=>{if(!e.ctrlKey)return;e.preventDefault();const r=w.getBoundingClientRect();setZoom(Z*(e.deltaY<0?1.1:0.9),e.clientX-r.left,e.clientY-r.top)},{passive:false});
+  $('#zoomIn').onclick=()=>setZoom(Z*1.4);
+  $('#zoomOut').onclick=()=>setZoom(Z/1.4);
+  $('#zoomFit').onclick=()=>{Z=1;applyZoom();w.scrollLeft=0;w.scrollTop=0};
+  window.addEventListener('resize',applyZoom);
+})();
 
 /* ---------- toast ---------- */
 let tt;function toast(m){const e=$('#toast');e.textContent=m;e.hidden=false;clearTimeout(tt);tt=setTimeout(()=>e.hidden=true,2200)}
@@ -455,75 +496,120 @@ document.addEventListener('keydown',e=>{
 });
 
 /* ---------- armazenamento (Google Sheets via Apps Script) ---------- */
-const CFG={url:'',token:''};
-try{Object.assign(CFG,JSON.parse(localStorage.getItem('purga.cfg')||'{}'))}catch(e){}
-function backendPronto(){return !!(CFG.url&&CFG.token)}
-function semConexao(){banner('Conecte o app à sua planilha: toque em Conexão e cole o link /exec e a senha.');abrirCfg()}
-const MAPA={
-  obterDados:()=>({acao:'dados'}),
-  salvarCor:c=>({acao:'salvarCor',cor:c}),
-  excluirCor:id=>({acao:'excluirCor',id}),
-  salvarPurga:p=>({acao:'salvarPurga',purga:p}),
-  excluirPurga:(de,para)=>({acao:'excluirPurga',de_id:de,para_id:para})
-};
-function backend(fn,...args){return postApi(CFG,MAPA[fn](...args))}
-async function postApi(cfg,body){
-  let r;
-  try{r=await fetch(cfg.url,{method:'POST',headers:{'Content-Type':'text/plain;charset=utf-8'},body:JSON.stringify(Object.assign({},body,{token:cfg.token}))})}
-  catch(e){throw new Error('Sem conexão com a internet ou link inacessível.')}
-  const txt=await r.text();let j;
-  try{j=JSON.parse(txt)}catch(e){throw new Error('Resposta inesperada. Confira o link /exec e se a implantação está com acesso "Qualquer pessoa".')}
-  if(!j.ok)throw new Error(j.erro==='token inválido'?'Senha incorreta.':j.erro);
-  return j.dados;
+/* Dados guardados só neste celular (Capacitor Preferences; localStorage fora do app) */
+const CHAVE='matriz-purga.dados',CHAVE_BK='matriz-purga.ultimoBackup';
+const CAP=(window.Capacitor&&window.Capacitor.Plugins)||{};
+async function lerChave(k){
+  try{if(CAP.Preferences){const r=await CAP.Preferences.get({key:k});return r.value}return localStorage.getItem(k)}catch(e){return null}
 }
-function abrirCfg(){$('#cfgUrl').value=CFG.url;$('#cfgToken').value=CFG.token;$('#cfgErr').hidden=true;$('#cfgScrim').hidden=false;setTimeout(()=>$('#cfgUrl').focus(),30)}
-function fecharCfg(){$('#cfgScrim').hidden=true}
-$('#cfgBtn').onclick=abrirCfg;
-$('#cfgCancel').onclick=fecharCfg;
-$('#cfgSave').onclick=async()=>{
-  const url=$('#cfgUrl').value.trim(),token=$('#cfgToken').value.trim(),err=$('#cfgErr');
-  if(!/^https:\/\/script\.google\.com\/macros\/s\/[^/]+\/exec$/.test(url)){err.hidden=false;err.textContent='O link deve ser o do app publicado, terminando em /exec.';return}
-  if(!token){err.hidden=false;err.textContent='Cole a senha (API_TOKEN).';return}
-  const b=$('#cfgSave');b.disabled=true;b.textContent='Testando…';
-  try{const d=await postApi({url,token},{acao:'dados'});
-    CFG.url=url;CFG.token=token;try{localStorage.setItem('purga.cfg',JSON.stringify(CFG))}catch(e){}
-    fecharCfg();apply(d);setSync();toast('Conectado à planilha')}
-  catch(e){err.hidden=false;err.textContent=e.message}
-  finally{b.disabled=false;b.textContent='Testar e salvar'}
+async function gravarChave(k,v){
+  if(CAP.Preferences){await CAP.Preferences.set({key:k,value:v});return}
+  try{localStorage.setItem(k,v)}catch(e){}
+}
+let DB=null;
+function semente(){
+  const t='2026-09-29T18:50:00Z';
+  const F=[['branco','Branco','#FFFFFF'],['preto','Preto','#161616'],['amarelo','Amarelo','#F4C21A'],['azul-claro','Azul claro','#A9D3E6'],['laranja-claro','Laranja claro','#F0B866'],['rosa-claro','Rosa claro','#F5DCD6'],['marrom','Marrom','#6B4A3A']];
+  const M=[[0,128,287,114,171,108,139],[608,0,656,552,570,587,340],[426,166,0,351,166,365,210],[270,151,269,0,211,234,177],[332,158,175,244,0,269,130],[157,134,264,131,146,0,115],[496,108,471,433,383,447,0]];
+  const cores=F.map((c,i)=>({id:c[0],nome:c[1],hex:c[2],material:'PLA',marca:'',ordem:i+1,criado_em:t}));
+  const purga=[];F.forEach((a,i)=>F.forEach((b,j)=>{if(i!==j)purga.push({de_id:a[0],para_id:b[0],valor_mm3:M[i][j],status:'bambu',nota:'',atualizado_em:t})}));
+  return {cores,purga};
+}
+function copia(){return JSON.parse(JSON.stringify({cores:DB.cores.slice().sort((a,b)=>a.ordem-b.ordem),purga:DB.purga}))}
+async function persistir(){await gravarChave(CHAVE,JSON.stringify(DB))}
+function novoId(nome){
+  const b=String(nome).toLowerCase().normalize('NFD').replace(/[̀-ͯ]/g,'').replace(/[^a-z0-9]+/g,'-').replace(/^-|-$/g,'').slice(0,24)||'cor';
+  return b+'-'+Math.random().toString(36).slice(2,6);
+}
+const OPS={
+  obterDados(){return copia()},
+  salvarCor(c){
+    const hex=String(c.hex||'').toUpperCase();
+    if(!c.nome)throw new Error('A cor precisa de um nome.');
+    if(!/^#[0-9A-F]{6}$/.test(hex))throw new Error('Cor em formato inválido. Use #RRGGBB.');
+    let x=c.id&&DB.cores.find(k=>k.id===c.id);
+    if(x){Object.assign(x,{nome:c.nome,hex,material:c.material||'PLA',marca:c.marca||''})}
+    else{DB.cores.push({id:novoId(c.nome),nome:c.nome,hex,material:c.material||'PLA',marca:c.marca||'',ordem:Math.max(0,...DB.cores.map(k=>k.ordem||0))+1,criado_em:new Date().toISOString()})}
+    return copia();
+  },
+  excluirCor(id){DB.cores=DB.cores.filter(k=>k.id!==id);DB.purga=DB.purga.filter(p=>p.de_id!==id&&p.para_id!==id);return copia()},
+  salvarPurga(p){
+    const v=Number(p.valor_mm3);if(!isFinite(v)||v<0||v>900)throw new Error('Valor deve ficar entre 0 e 900 mm³.');
+    DB.purga=DB.purga.filter(q=>!(q.de_id===p.de_id&&q.para_id===p.para_id));
+    DB.purga.push({de_id:p.de_id,para_id:p.para_id,valor_mm3:Math.round(v),status:p.status||'ajustado',nota:p.nota||'',atualizado_em:new Date().toISOString()});
+    return copia();
+  },
+  excluirPurga(de,para){DB.purga=DB.purga.filter(q=>!(q.de_id===de&&q.para_id===para));return copia()}
+};
+function backendPronto(){return !!DB}
+function semConexao(){}
+async function backend(fn,...args){const r=OPS[fn](...args);if(fn!=='obterDados')await persistir();return r}
+async function carregar(){
+  let txt=await lerChave(CHAVE),d=null;
+  try{d=txt?JSON.parse(txt):null}catch(e){d=null}
+  if(!d||!Array.isArray(d.cores)){d=semente();DB=d;await persistir()}else DB=d;
+  apply(copia());mostrarUltimoBackup();
+}
+
+/* ---------- backup ---------- */
+async function mostrarUltimoBackup(){
+  const v=await lerChave(CHAVE_BK);
+  $('#bkInfo').textContent=v?'Último backup exportado em '+new Date(v).toLocaleDateString('pt-BR')+'.':'Nenhum backup exportado ainda.';
+}
+$('#expBtn').onclick=async()=>{
+  if(!DB)return;
+  const hoje=new Date().toISOString().slice(0,10);
+  const nome='matriz-purga-'+hoje+'.json';
+  const txt=JSON.stringify(Object.assign({app:'matriz-de-purga',versao:1,exportado_em:new Date().toISOString()},copia()),null,1);
+  try{
+    if(CAP.Filesystem&&CAP.Share){
+      const w=await CAP.Filesystem.writeFile({path:nome,data:txt,directory:'CACHE',encoding:'utf8'});
+      try{await CAP.Share.share({title:'Backup Matriz de Purga',dialogTitle:'Salvar backup em…',url:w.uri})}
+      catch(e){if(!/cancel/i.test(String(e&&e.message)))throw e;return}
+    }else{
+      const a=document.createElement('a');a.href=URL.createObjectURL(new Blob([txt],{type:'application/json'}));a.download=nome;document.body.append(a);a.click();a.remove();
+    }
+    await gravarChave(CHAVE_BK,new Date().toISOString());mostrarUltimoBackup();toast('Backup exportado');
+  }catch(e){toast('Não foi possível exportar: '+((e&&e.message)||'erro'))}
+};
+let pendente=null;
+$('#impBtn').onclick=()=>{$('#impFile').value='';$('#impFile').click()};
+$('#impFile').onchange=e=>{
+  const f=e.target.files&&e.target.files[0];if(!f)return;
+  const r=new FileReader();
+  r.onload=()=>{
+    let d;try{d=JSON.parse(r.result)}catch(err){toast('Esse arquivo não é um backup válido.');return}
+    if(!d||!Array.isArray(d.cores)||!Array.isArray(d.purga)){toast('Esse arquivo não é um backup do Matriz de Purga.');return}
+    pendente={cores:d.cores,purga:d.purga};
+    $('#impText').textContent='Substituir os dados atuais ('+DB.cores.length+' cores, '+DB.purga.length+' valores) pelos do arquivo ('+d.cores.length+' cores, '+d.purga.length+' valores)? Isso não pode ser desfeito.';
+    $('#impConfirm').hidden=false;
+  };
+  r.readAsText(f);
+};
+$('#impCancel').onclick=()=>{pendente=null;$('#impConfirm').hidden=true};
+$('#impOk').onclick=async()=>{
+  if(!pendente)return;DB=pendente;pendente=null;$('#impConfirm').hidden=true;
+  await persistir();S.sel=[];saveSel();apply(copia());toast('Backup importado');
 };
 
+/* ---------- aplicar e salvar ---------- */
 function apply(d){
   if(!d)return;
   S.fil=new Map(d.cores.map(c=>[c.id,{id:c.id,name:c.nome,hex:c.hex,material:c.material,brand:c.marca,order:c.ordem,createdAt:c.criado_em}]));
   S.pairs=new Map(d.purga.map(p=>[pid(p.de_id,p.para_id),{from:p.de_id,to:p.para_id,value:p.valor_mm3,status:p.status,note:p.nota,updatedAt:p.atualizado_em}]));
-  S.loaded=true;S.last=Date.now();$('#dbBanner').hidden=true;render();
+  S.loaded=true;render();
 }
-let busy=0;
 function call(fn,...args){
   // último argumento de texto = mensagem de sucesso; opcional: id temporário a trocar pelo definitivo
   let tmp=null;if(args.length&&(args[args.length-1]===null||String(args[args.length-1]).startsWith('tmp-'))){tmp=args.pop()}
   const msg=args.pop();
-  if(!backendPronto()){toast('Configure a conexão com a planilha primeiro');return}
-  busy++;setSync('Salvando…');
-  const before=new Set(S.fil.keys());
-  backend(fn,...args).then(d=>{busy--;
+  const before=new Set(DB?DB.cores.map(c=>c.id):[]);
+  backend(fn,...args).then(d=>{
       if(tmp){const novo=d.cores.map(c=>c.id).find(x=>!before.has(x));S.sel=S.sel.map(x=>x===tmp?novo:x).filter(Boolean);saveSel()}
-      apply(d);toast(msg);setSync()})
-    .catch(e=>{busy--;toast((e&&e.message)||'Não foi possível salvar. Tente de novo.');refresh()});
+      apply(d);toast(msg)})
+    .catch(e=>{toast((e&&e.message)||'Não foi possível salvar.');carregar()});
 }
-function refresh(){
-  if(!backendPronto()){semConexao();return}
-  if(busy)return;setSync('Atualizando…');
-  backend('obterDados').then(d=>{if(!busy)apply(d);setSync()})
-    .catch(e=>{banner('Não consegui ler a planilha: '+((e&&e.message)||'erro desconhecido'));setSync()});
-}
-function setSync(t){const e=$('#sync');if(!e)return;if(t){e.textContent=t;return}
-  e.textContent=S.last?'Sincronizado às '+new Date(S.last).toLocaleTimeString('pt-BR',{hour:'2-digit',minute:'2-digit'}):''}
-function banner(m){const b=$('#dbBanner');b.textContent=m;b.hidden=false}
-render();refresh();
-setInterval(()=>{if(document.visibilityState==='visible')refresh()},45000);
-document.addEventListener('visibilitychange',()=>{if(document.visibilityState==='visible'&&Date.now()-(S.last||0)>5000)refresh()});
-$('#syncBtn').onclick=refresh;
+render();carregar();
 
 })();
 </script>
